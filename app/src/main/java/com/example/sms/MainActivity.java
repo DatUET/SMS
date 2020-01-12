@@ -6,6 +6,7 @@ import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 import android.Manifest;
 import android.content.ContentResolver;
@@ -29,13 +30,14 @@ public class MainActivity extends AppCompatActivity {
     String[] permission = {Manifest.permission.SEND_SMS, Manifest.permission.READ_SMS, Manifest.permission.RECEIVE_SMS, Manifest.permission.READ_PHONE_STATE};
     private final int REQUEST_CODE_SEND_SMS = 100;
 
-    public static String myNumberPhone;
 
     RecyclerView recyler_users;
     UserAdapter userAdapter;
 
     List<Messages> messagesList;
     List<String> nameList;
+
+    SwipeRefreshLayout refresh;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -48,6 +50,14 @@ public class MainActivity extends AppCompatActivity {
         LinearLayoutManager layoutManager = new LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false);
         recyler_users.setLayoutManager(layoutManager);
 
+        refresh = findViewById(R.id.refresh);
+        refresh.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
+            @Override
+            public void onRefresh() {
+                readSMS();
+            }
+        });
+
         readSMS();
     }
 
@@ -58,33 +68,34 @@ public class MainActivity extends AppCompatActivity {
             ActivityCompat.requestPermissions(this, permission, REQUEST_CODE_SEND_SMS);
         }
         else {
-            TelephonyManager tMgr = (TelephonyManager)getSystemService(Context.TELEPHONY_SERVICE);
-           myNumberPhone = tMgr.getLine1Number();
+
+            ContentResolver contentResolver = getContentResolver();
+            Cursor smsInboxCursor = contentResolver.query(Uri.parse("content://sms"), null, null, null, null);
+            int indexBody = smsInboxCursor.getColumnIndex("body");
+            int indexAddress = smsInboxCursor.getColumnIndex("address");
+            int indexType = smsInboxCursor.getColumnIndex("type");
+            int indexDate = smsInboxCursor.getColumnIndex("date");
+
+            if (indexBody < 0 || !smsInboxCursor.moveToFirst() || indexType < 0) return;
+            do {
+                int type = smsInboxCursor.getInt(indexType);
+                String body = smsInboxCursor.getString(indexBody);
+                String address = smsInboxCursor.getString(indexAddress);
+                String date = smsInboxCursor.getString(indexDate);
+
+                Messages messages = new Messages(type, address, body, date);
+                if (!nameList.contains(messages.getAddress())) {
+                    nameList.add(messages.getAddress());
+                    messagesList.add(messages);
+                }
+            } while (smsInboxCursor.moveToNext());
+
+            userAdapter = new UserAdapter(this, messagesList);
+            recyler_users.setAdapter(userAdapter);
+            userAdapter.notifyDataSetChanged();
         }
-        ContentResolver contentResolver = getContentResolver();
-        Cursor smsInboxCursor = contentResolver.query(Uri.parse("content://sms"), null, null, null, null);
-        int indexBody = smsInboxCursor.getColumnIndex("body");
-        int indexAddress = smsInboxCursor.getColumnIndex("address");
-        int indexType = smsInboxCursor.getColumnIndex("type");
-        int indexDate = smsInboxCursor.getColumnIndex("date");
 
-        if (indexBody < 0 || !smsInboxCursor.moveToFirst() || indexType < 0) return;
-        do {
-            int type = smsInboxCursor.getInt(indexType);
-            String body = smsInboxCursor.getString(indexBody);
-            String address = smsInboxCursor.getString(indexAddress);
-            String date = smsInboxCursor.getString(indexDate);
-
-            Messages messages = new Messages(type, address, body, date);
-            if(!nameList.contains(messages.getAddress())){
-                nameList.add(messages.getAddress());
-                messagesList.add(messages);
-            }
-        } while (smsInboxCursor.moveToNext());
-
-        userAdapter = new UserAdapter(this, messagesList);
-        recyler_users.setAdapter(userAdapter);
-        userAdapter.notifyDataSetChanged();
+        refresh.setRefreshing(false);
     }
 
     @Override
