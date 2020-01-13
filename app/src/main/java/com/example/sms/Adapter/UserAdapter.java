@@ -1,8 +1,14 @@
 package com.example.sms.Adapter;
 
+import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
+import android.database.Cursor;
+import android.net.Uri;
+import android.provider.ContactsContract;
+import android.telephony.PhoneNumberUtils;
 import android.text.format.DateFormat;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -43,7 +49,14 @@ public class UserAdapter extends RecyclerView.Adapter<UserAdapter.UserViewHolder
     public void onBindViewHolder(@NonNull UserViewHolder holder, int position) {
         final Messages messages = messagesList.get(position);
 
-        holder.txt_name.setText(messages.getAddress());
+        final String displayName = getContactName(context, messages.getAddress());
+
+        if(!displayName.equals("none")){
+            holder.txt_name.setText(displayName);
+        }
+        else {
+            holder.txt_name.setText(messages.getAddress());
+        }
 
         Calendar cal = Calendar.getInstance(Locale.ENGLISH);
         cal.setTimeInMillis(Long.parseLong(messages.getDate()));
@@ -57,10 +70,33 @@ public class UserAdapter extends RecyclerView.Adapter<UserAdapter.UserViewHolder
             public void onClick(View v) {
                 Intent intent = new Intent(context, ChatActivity.class);
                 intent.putExtra("address", messages.getAddress());
+                intent.putExtra("displayName", displayName);
                 context.startActivity(intent);
             }
         });
     }
+
+    public String getContactName(Context context, String phoneNumber) {
+        ContentResolver cr = context.getContentResolver();
+        Uri uri = Uri.withAppendedPath(ContactsContract.PhoneLookup.CONTENT_FILTER_URI,
+                Uri.encode(phoneNumber));
+        Cursor cursor = cr.query(uri,
+                new String[] { ContactsContract.PhoneLookup.DISPLAY_NAME }, null, null, null);
+        if (cursor == null) {
+            return null;
+        }
+        String contactName = "none";
+        if (cursor.moveToFirst()) {
+            contactName = cursor.getString(cursor
+                    .getColumnIndex(ContactsContract.PhoneLookup.DISPLAY_NAME));
+        }
+        if (cursor != null && !cursor.isClosed()) {
+            cursor.close();
+        }
+        Log.d("check", "Contact name:  - "+ contactName);
+        return contactName;
+    }
+
 
     @Override
     public int getItemCount() {

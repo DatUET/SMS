@@ -24,7 +24,7 @@ import java.util.List;
 
 public class ChatActivity extends AppCompatActivity {
 
-    String address;
+    String address, displayName;
     Toolbar toolbar;
     TextView txt_name;
     RecyclerView recycler_chats;
@@ -41,16 +41,22 @@ public class ChatActivity extends AppCompatActivity {
 
         Intent intent = getIntent();
         address = intent.getStringExtra("address");
+        displayName = intent.getStringExtra("displayName");
+
 
         toolbar = findViewById(R.id.toolbars);
         setSupportActionBar(toolbar);
         toolbar.setTitle("");
         txt_name = findViewById(R.id.txt_name);
+        if(displayName.equals("none")){
+            txt_name.setText(address);
+        }
+        else {
+            txt_name.setText(displayName);
+        }
         txt_chat = findViewById(R.id.txt_chat);
         recycler_chats = findViewById(R.id.recycler_chats);
         btn_send = findViewById(R.id.btn_send);
-
-        txt_name.setText(address);
 
         messagesList = new ArrayList<>();
         LinearLayoutManager layoutManager = new LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false);
