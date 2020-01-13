@@ -17,6 +17,7 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.provider.ContactsContract;
 import android.telephony.TelephonyManager;
+import android.util.Log;
 import android.widget.LinearLayout;
 import android.widget.Toast;
 
@@ -108,5 +109,11 @@ public class MainActivity extends AppCompatActivity {
         else {
             Toast.makeText(MainActivity.this, "Permission Denied!!!", Toast.LENGTH_LONG).show();
         }
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+        readSMS();
     }
 }

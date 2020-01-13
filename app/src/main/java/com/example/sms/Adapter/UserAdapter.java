@@ -93,7 +93,6 @@ public class UserAdapter extends RecyclerView.Adapter<UserAdapter.UserViewHolder
         if (cursor != null && !cursor.isClosed()) {
             cursor.close();
         }
-        Log.d("check", "Contact name:  - "+ contactName);
         return contactName;
     }
 
