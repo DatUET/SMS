@@ -22,7 +22,6 @@
                 android:textColor="@color/colorWhites"
                 android:textSize="18sp"
                 android:textStyle="bold"/>
-
     </androidx.appcompat.widget.Toolbar>
 
     <androidx.recyclerview.widget.RecyclerView
@@ -53,7 +52,8 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:hint="Write some think..."
-            android:layout_weight="1"/>
+            android:layout_weight="1"
+            android:background="@drawable/editext"/>
 
         <ImageButton
             android:id="@+id/btn_send"

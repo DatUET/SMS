@@ -11,6 +11,7 @@ import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 import android.Manifest;
 import android.content.ContentResolver;
 import android.content.Context;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.net.Uri;
@@ -18,6 +19,9 @@ import android.os.Bundle;
 import android.provider.ContactsContract;
 import android.telephony.TelephonyManager;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.widget.LinearLayout;
 import android.widget.Toast;
 
@@ -70,7 +74,8 @@ public class MainActivity extends AppCompatActivity {
             ActivityCompat.requestPermissions(this, permission, REQUEST_CODE_SEND_SMS);
         }
         else {
-
+            messagesList.clear();
+            nameList.clear();
             ContentResolver contentResolver = getContentResolver();
             Cursor smsInboxCursor = contentResolver.query(Uri.parse("content://sms"), null, null, null, null);
             int indexBody = smsInboxCursor.getColumnIndex("body");
@@ -109,6 +114,21 @@ public class MainActivity extends AppCompatActivity {
         else {
             Toast.makeText(MainActivity.this, "Permission Denied!!!", Toast.LENGTH_LONG).show();
         }
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.menu_main, menu);
+        return super.onCreateOptionsMenu(menu);
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(@NonNull MenuItem item) {
+        if(item.getItemId() == R.id.it_add){
+            Intent intent = new Intent(MainActivity.this, NewMsgActivity.class);
+            startActivity(intent);
+        }
+        return super.onOptionsItemSelected(item);
     }
 
     @Override
